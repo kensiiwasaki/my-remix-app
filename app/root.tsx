@@ -25,7 +25,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const q = url.searchParams.get("q");
   const contacts = await getContacts(q);
-  return json({ contacts, q });
+  const response = await fetch("https://jsonplaceholder.typicode.com/users/1");
+  const data = await response.json();
+  return json({ contacts, q, data });
 };
 
 export const action = async () => {
@@ -34,7 +36,7 @@ export const action = async () => {
 };
 
 export default function App() {
-  const { contacts, q } = useLoaderData<typeof loader>();
+  const { contacts, q, data } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const submit = useSubmit();
   const searching =
@@ -122,6 +124,8 @@ export default function App() {
           }
           id="detail"
         >
+          <p>{data.name}</p>
+          <p>{data.email}</p>
           <Outlet />
         </div>
 
