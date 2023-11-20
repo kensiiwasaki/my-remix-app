@@ -1,6 +1,6 @@
 import type { FunctionComponent } from "react";
 import { json } from "@remix-run/node";
-import { Form, useLoaderData } from "@remix-run/react";
+import { Form, useLoaderData, useFetcher } from "@remix-run/react";
 import { getContact } from "../data";
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import invariant from "tiny-invariant";
@@ -79,17 +79,20 @@ export default function Contact() {
 const Favorite: FunctionComponent<{
   contact: Pick<ContactRecord, "favorite">;
 }> = ({ contact }) => {
+  const fetcher = useFetcher();
   const favorite = contact.favorite;
 
   return (
-    <Form method="post">
-      <button
-        aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
-        name="favorite"
-        value={favorite ? "false" : "true"}
-      >
-        {favorite ? "★" : "☆"}
-      </button>
-    </Form>
+    <fetcher.Form method="post">
+      <Form method="post">
+        <button
+          aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
+          name="favorite"
+          value={favorite ? "false" : "true"}
+        >
+          {favorite ? "★" : "☆"}
+        </button>
+      </Form>
+    </fetcher.Form>
   );
 };
