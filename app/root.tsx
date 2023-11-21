@@ -1,5 +1,5 @@
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import {
   Form,
   Links,
@@ -12,10 +12,12 @@ import {
   useLoaderData,
   useNavigation,
   useSubmit,
+  useActionData,
 } from "@remix-run/react";
 import appStylesHref from "./app.css";
-import { getContacts, createEmptyContact } from "./data";
+import { getContacts } from "./data";
 import { useEffect } from "react";
+import { OpenAI } from "openai";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: appStylesHref },
@@ -31,14 +33,27 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async () => {
-  const contact = await createEmptyContact();
-  return redirect(`/contacts/${contact.id}/edit`);
+  // const contact = await createEmptyContact();
+  // return redirect(`/contacts/${contact.id}/edit`);
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+  const prompt = "こんにちは";
+  const gptResponse = await openai.chat.completions.create({
+    messages: [{ role: "system", content: prompt }],
+    model: "gpt-3.5-turbo",
+  });
+
+  // レスポンスをJSON形式で返します
+  return json({ response: gptResponse });
 };
 
 export default function App() {
   const { contacts, q, data } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const submit = useSubmit();
+  const actionData = useActionData<typeof action>();
+  console.log(actionData ? actionData.response : "Waiting...");
   const searching =
     navigation.location &&
     new URLSearchParams(navigation.location.search).has("q");
@@ -126,6 +141,14 @@ export default function App() {
         >
           <p>{data.name}</p>
           <p>{data.email}</p>
+          <Form method="post">
+            <button type="submit">プロンプト</button>
+          </Form>
+          <p>
+            {actionData
+              ? actionData.response.choices[0].message.content
+              : "Waiting..."}
+          </p>
           <Outlet />
         </div>
 
